@@ -1,5 +1,4 @@
 #include "PairHMM.hh"
-#include "PairHMMPar.hh"
 
 float naive::PairHMM::forward(const std::vector<uchar>& seq1, const std::vector<uchar>& seq2){
     // initialize
@@ -77,4 +76,5 @@ float naive::PairHMM::forward(const std::vector<uchar>& seq1, const std::vector<
 
     // termination
     float score = xlogsumexp(match[seq1Len+1][seq2Len+1], insert1[seq1Len+1][seq2Len+1], insert2[seq1Len+1][seq2Len+1]);
+    return score;
 }

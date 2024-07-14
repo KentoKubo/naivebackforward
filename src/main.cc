@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "Sequence.hh"
+#include "PairHMM.hh"
 
 int main(int argc, char** argv){
     if (argc != 2) {
@@ -13,7 +14,8 @@ int main(int argc, char** argv){
     naive::MultiSequences multiSequences;
     multiSequences.readFasta(argv[1]);
     
-    naive::Sequence seq1 = multiSequences.getSequence(0);
-    std::cout << "INFO: seq1 len" << seq1.getEncodedSeq().size() << std::endl;
+    naive::PairHMM pairHMM;
+    float forwardScore = pairHMM.forward(multiSequences.getSequence(0).getEncodedSeq(), multiSequences.getSequence(1).getEncodedSeq());
     
+    std::cout << "INFO: forward score: " << forwardScore << std::endl;
 }
