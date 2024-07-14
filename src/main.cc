@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 
 #include "Sequence.hh"
 #include "PairHMM.hh"
@@ -17,5 +18,5 @@ int main(int argc, char** argv){
     naive::PairHMM pairHMM;
     float forwardScore = pairHMM.forward(multiSequences.getSequence(0).getEncodedSeq(), multiSequences.getSequence(1).getEncodedSeq());
     
-    std::cout << "INFO: forward score: " << forwardScore << std::endl;
+    std::cout << std::fixed << std::setprecision(7) << "INFO: forward score: " << forwardScore << std::endl;
 }
