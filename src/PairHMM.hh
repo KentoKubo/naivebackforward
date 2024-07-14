@@ -6,9 +6,12 @@
 
 namespace naive{
     class PairHMM{
+        private:
+        PairHMMPar par;
+
         public:
-        float forward(const Sequence& seq1, const Sequence& seq2);
-        float backward(const Sequence& seq1, const Sequence& seq2);
+        float forward(const std::vector<uchar>& seq1, const std::vector<uchar>& seq2);
+        float backward(const std::vector<uchar>& seq1, const std::vector<uchar>& seq2);
     };
 }
 

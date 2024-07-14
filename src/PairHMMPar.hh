@@ -2,19 +2,24 @@
 #define _PAIRHMM_PAR_HH_
 
 #include "Utils.hh"
+#include "Sequence.hh"
 
 namespace naive{
 	const int N_STATES = 3;
 	const int N_OUTPUTS = 25;
+	const int N_CHARS = 5;
+	
+	// INS1 is the insertion for seq1, so seq1 is a gap and seq2 is a char
+	// INS2 is the insertion for seq2, so seq2 is a gap and seq1 is a char
+    enum struct State{ INS2, INS1, MATCH };
 
 	class PairHMMPar{
 		private:
 		float TransProbs[N_STATES][N_STATES] = {
-			{0.666439, 0.041319, 0.292242}, // INS1
-			{0.041319, 0.666439, 0.292242}, // INS2
+			{0.666439, 0.041319, 0.292242}, // INS2
+			{0.041319, 0.666439, 0.292242}, // INS1
 			{0.022666, 0.022666, 0.954668}  // MATCH
 		};
-
 		float EmitProbs[N_OUTPUTS][N_STATES] = {
 			{0.000000, 0.000000, 1.000000}, // ..
 			{0.000000, 0.211509, 0.000000}, // .A
@@ -44,11 +49,11 @@ namespace naive{
 		};
 		
 		public:
-		float getLogTransProb(const int& from, const int& to){
-			return xlog(TransProbs[from][to]);
+		float getLogTransProb(State from, State to){
+			return xlog(TransProbs[static_cast<int>(from)][static_cast<int>(to)]);
 		}
-		float getLogEmitProb(const int& output, const int& state){
-			return xlog(EmitProbs[output][state]);
+		float getLogEmitProb(const uchar& c1, const uchar& c2, State state){
+			return xlog(EmitProbs[c1 * N_CHARS + c2][static_cast<int>(state)]);
 		}
 	};
 }
