@@ -1,0 +1,9 @@
+version: '3.3'
+services:
+  naivebackforward:
+    build: .
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+    stdin_open: true
