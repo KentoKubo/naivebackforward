@@ -21,7 +21,7 @@ float naive::PairHMM::forward(const std::vector<uchar>& seq1, const std::vector<
                 par.getLogTransProb(State::INS1, State::MATCH) + insert1[i-1][0], 
                 par.getLogTransProb(State::INS2, State::MATCH) + insert2[i-1][0]
                 );
-        insert1[i][1] = par.getLogEmitProb(seq1[i-2], 0, State::INS1) // emit prob is 0 because seq1 is a gap in this state
+        insert1[i][1] = par.getLogEmitProb(0, 0, State::INS1)
             + xlogsumexp(
                 par.getLogTransProb(State::MATCH, State::INS1) + match[i][0],
                 par.getLogTransProb(State::INS1, State::INS1) + insert1[i][0]
@@ -45,7 +45,7 @@ float naive::PairHMM::forward(const std::vector<uchar>& seq1, const std::vector<
                 par.getLogTransProb(State::MATCH, State::INS1) + match[1][j-1],
                 par.getLogTransProb(State::INS1, State::INS1) + insert1[1][j-1]
                 );
-        insert2[1][j] = par.getLogEmitProb(0, seq2[j-2], State::INS2) // emit prob is 0 because seq2 is a gap in this state
+        insert2[1][j] = par.getLogEmitProb(0, 0, State::INS2)
             + xlogsumexp(
                 par.getLogTransProb(State::MATCH, State::INS2) + match[0][j], 
                 par.getLogTransProb(State::INS2, State::INS2) + insert2[0][j]
@@ -61,12 +61,12 @@ float naive::PairHMM::forward(const std::vector<uchar>& seq1, const std::vector<
                     par.getLogTransProb(State::INS1, State::MATCH) + insert1[i-1][j-1], 
                     par.getLogTransProb(State::INS2, State::MATCH) + insert2[i-1][j-1]
                     );
-            insert1[i][j] = par.getLogEmitProb(seq1[i-2], seq2[j-2], State::INS1) 
+            insert1[i][j] = par.getLogEmitProb(0, seq2[j-2], State::INS1) 
                 + xlogsumexp(
                     par.getLogTransProb(State::MATCH, State::INS1) + match[i][j-1],
                     par.getLogTransProb(State::INS1, State::INS1) + insert1[i][j-1]
                     );
-            insert2[i][j] = par.getLogEmitProb(seq1[i-2], seq2[j-2], State::INS2) 
+            insert2[i][j] = par.getLogEmitProb(seq1[i-2], 0, State::INS2) 
                 + xlogsumexp(
                     par.getLogTransProb(State::MATCH, State::INS2) + match[i-1][j], 
                     par.getLogTransProb(State::INS2, State::INS2) + insert2[i-1][j]
@@ -95,7 +95,7 @@ float naive::PairHMM::backward(const std::vector<uchar>& seq1, const std::vector
     insert2[seq1Len][seq2Len] = xlog(1.0);
     
     // recursion of i = L1 or j = L2
-    for(llong i = seq1Len-1; i >= 1; i--){
+    for(llong i = seq1Len-1; i >= 0; i--){
         match[i][seq2Len] = xlogsumexp(
             par.getLogTransProb(State::MATCH, State::MATCH) + par.getLogEmitProb(seq1[i], 0, State::MATCH) + match[i+1][seq2Len+1],
             par.getLogTransProb(State::MATCH, State::INS1) + par.getLogEmitProb(0, 0, State::INS1) + insert1[i][seq2Len+1],
@@ -110,19 +110,19 @@ float naive::PairHMM::backward(const std::vector<uchar>& seq1, const std::vector
             par.getLogTransProb(State::INS2, State::INS2) + par.getLogEmitProb(seq1[i], 0, State::INS2) + insert2[i+1][seq2Len]
             );
     }
-    for(llong j = seq2Len-1; j >= 1; j--){
+    for(llong j = seq2Len-1; j >= 0; j--){
         match[seq1Len][j] = xlogsumexp(
             par.getLogTransProb(State::MATCH, State::MATCH) + par.getLogEmitProb(0, seq2[j], State::MATCH) + match[seq1Len+1][j+1],
-            par.getLogTransProb(State::MATCH, State::INS1) + par.getLogEmitProb(0, 0, State::INS1) + insert1[seq1Len][j+1],
-            par.getLogTransProb(State::MATCH, State::INS2) + par.getLogEmitProb(0, seq2[j], State::INS2) + insert2[seq1Len+1][j]
+            par.getLogTransProb(State::MATCH, State::INS1) + par.getLogEmitProb(0, seq2[j], State::INS1) + insert1[seq1Len][j+1],
+            par.getLogTransProb(State::MATCH, State::INS2) + par.getLogEmitProb(0, 0, State::INS2) + insert2[seq1Len+1][j]
             );
         insert1[seq1Len][j] = xlogsumexp(
             par.getLogTransProb(State::INS1, State::MATCH) + par.getLogEmitProb(0, seq2[j], State::MATCH) + match[seq1Len+1][j+1],
-            par.getLogTransProb(State::INS1, State::INS1) + par.getLogEmitProb(0, 0, State::INS1) + insert1[seq1Len][j+1]
+            par.getLogTransProb(State::INS1, State::INS1) + par.getLogEmitProb(0, seq2[j], State::INS1) + insert1[seq1Len][j+1]
             );
         insert2[seq1Len][j] = xlogsumexp(
             par.getLogTransProb(State::INS2, State::MATCH) + par.getLogEmitProb(0, seq2[j], State::MATCH) + match[seq1Len+1][j+1],
-            par.getLogTransProb(State::INS2, State::INS2) + par.getLogEmitProb(0, seq2[j], State::INS2) + insert2[seq1Len+1][j]
+            par.getLogTransProb(State::INS2, State::INS2) + par.getLogEmitProb(0, 0, State::INS2) + insert2[seq1Len+1][j]
             );
     }
     
