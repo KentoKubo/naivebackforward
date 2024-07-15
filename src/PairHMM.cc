@@ -78,3 +78,74 @@ float naive::PairHMM::forward(const std::vector<uchar>& seq1, const std::vector<
     float score = xlogsumexp(match[seq1Len+1][seq2Len+1], insert1[seq1Len+1][seq2Len+1], insert2[seq1Len+1][seq2Len+1]);
     return score;
 }
+
+float naive::PairHMM::backward(const std::vector<uchar>& seq1, const std::vector<uchar>& seq2){
+    // initialize
+    llong seq1Len = seq1.size();
+    llong seq2Len = seq2.size();
+
+    // all b*(i,L2+1), b*(L1+1,j) = 0
+    std::vector<std::vector<float>> match(seq1Len+2, std::vector<float>(seq2Len+2, xlog(0.0)));
+    std::vector<std::vector<float>> insert1(seq1Len+2, std::vector<float>(seq2Len+2, xlog(0.0)));
+    std::vector<std::vector<float>> insert2(seq1Len+2, std::vector<float>(seq2Len+2, xlog(0.0)));
+    
+    // bM(L1,L2) = bI1(L1,L2) = bI2(L1,L2) = 1
+    match[seq1Len][seq2Len] = xlog(1.0);
+    insert1[seq1Len][seq2Len] = xlog(1.0);
+    insert2[seq1Len][seq2Len] = xlog(1.0);
+    
+    // recursion of i = L1 or j = L2
+    for(llong i = seq1Len-1; i >= 1; i--){
+        match[i][seq2Len] = xlogsumexp(
+            par.getLogTransProb(State::MATCH, State::MATCH) + par.getLogEmitProb(seq1[i], 0, State::MATCH) + match[i+1][seq2Len+1],
+            par.getLogTransProb(State::MATCH, State::INS1) + par.getLogEmitProb(0, 0, State::INS1) + insert1[i][seq2Len+1],
+            par.getLogTransProb(State::MATCH, State::INS2) + par.getLogEmitProb(seq1[i], 0, State::INS2) + insert2[i+1][seq2Len]
+            );
+        insert1[i][seq2Len] = xlogsumexp(
+            par.getLogTransProb(State::INS1, State::MATCH) + par.getLogEmitProb(seq1[i], 0, State::MATCH) + match[i+1][seq2Len+1],
+            par.getLogTransProb(State::INS1, State::INS1) + par.getLogEmitProb(0, 0, State::INS1) + insert1[i][seq2Len+1]
+            );
+        insert2[i][seq2Len] = xlogsumexp(
+            par.getLogTransProb(State::INS2, State::MATCH) + par.getLogEmitProb(seq1[i], 0, State::MATCH) + match[i+1][seq2Len+1],
+            par.getLogTransProb(State::INS2, State::INS2) + par.getLogEmitProb(seq1[i], 0, State::INS2) + insert2[i+1][seq2Len]
+            );
+    }
+    for(llong j = seq2Len-1; j >= 1; j--){
+        match[seq1Len][j] = xlogsumexp(
+            par.getLogTransProb(State::MATCH, State::MATCH) + par.getLogEmitProb(0, seq2[j], State::MATCH) + match[seq1Len+1][j+1],
+            par.getLogTransProb(State::MATCH, State::INS1) + par.getLogEmitProb(0, 0, State::INS1) + insert1[seq1Len][j+1],
+            par.getLogTransProb(State::MATCH, State::INS2) + par.getLogEmitProb(0, seq2[j], State::INS2) + insert2[seq1Len+1][j]
+            );
+        insert1[seq1Len][j] = xlogsumexp(
+            par.getLogTransProb(State::INS1, State::MATCH) + par.getLogEmitProb(0, seq2[j], State::MATCH) + match[seq1Len+1][j+1],
+            par.getLogTransProb(State::INS1, State::INS1) + par.getLogEmitProb(0, 0, State::INS1) + insert1[seq1Len][j+1]
+            );
+        insert2[seq1Len][j] = xlogsumexp(
+            par.getLogTransProb(State::INS2, State::MATCH) + par.getLogEmitProb(0, seq2[j], State::MATCH) + match[seq1Len+1][j+1],
+            par.getLogTransProb(State::INS2, State::INS2) + par.getLogEmitProb(0, seq2[j], State::INS2) + insert2[seq1Len+1][j]
+            );
+    }
+    
+    // recursion else
+    for(llong i = seq1Len-1; i >= 0; i--){
+        for(llong j = seq2Len-1; j >= 0; j--){
+            match[i][j] = xlogsumexp(
+                par.getLogTransProb(State::MATCH, State::MATCH) + par.getLogEmitProb(seq1[i], seq2[j], State::MATCH) + match[i+1][j+1],
+                par.getLogTransProb(State::MATCH, State::INS1) + par.getLogEmitProb(0, seq2[j], State::INS1) + insert1[i][j+1],
+                par.getLogTransProb(State::MATCH, State::INS2) + par.getLogEmitProb(seq1[i], 0, State::INS2) + insert2[i+1][j]
+                );
+            insert1[i][j] = xlogsumexp(
+                par.getLogTransProb(State::INS1, State::MATCH) + par.getLogEmitProb(seq1[i], seq2[j], State::MATCH) + match[i+1][j+1],
+                par.getLogTransProb(State::INS1, State::INS1) + par.getLogEmitProb(0, seq2[j], State::INS1) + insert1[i][j+1]
+                );
+            insert2[i][j] = xlogsumexp(
+                par.getLogTransProb(State::INS2, State::MATCH) + par.getLogEmitProb(seq1[i], seq2[j], State::MATCH) + match[i+1][j+1],
+                par.getLogTransProb(State::INS2, State::INS2) + par.getLogEmitProb(seq1[i], 0, State::INS2) + insert2[i+1][j]
+                );
+        }
+    }
+
+    // termination
+    float score = match[0][0];
+    return score;
+}
