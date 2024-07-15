@@ -24,11 +24,13 @@ float naive::PairHMM::forward(const std::vector<uchar>& seq1, const std::vector<
         insert1[i][1] = par.getLogEmitProb(0, 0, State::INS1)
             + xlogsumexp(
                 par.getLogTransProb(State::MATCH, State::INS1) + match[i][0],
-                par.getLogTransProb(State::INS1, State::INS1) + insert1[i][0]
+                par.getLogTransProb(State::INS1, State::INS1) + insert1[i][0],
+                par.getLogTransProb(State::INS2, State::INS1) + insert2[i][0]
                 );
         insert2[i][1] = par.getLogEmitProb(seq1[i-2], 0, State::INS2) 
             + xlogsumexp(
                 par.getLogTransProb(State::MATCH, State::INS2) + match[i-1][1], 
+                par.getLogTransProb(State::INS1, State::INS2) + insert1[i-1][1],
                 par.getLogTransProb(State::INS2, State::INS2) + insert2[i-1][1]
                 );
     }
@@ -43,11 +45,13 @@ float naive::PairHMM::forward(const std::vector<uchar>& seq1, const std::vector<
         insert1[1][j] = par.getLogEmitProb(0, seq2[j-2], State::INS1) 
             + xlogsumexp(
                 par.getLogTransProb(State::MATCH, State::INS1) + match[1][j-1],
-                par.getLogTransProb(State::INS1, State::INS1) + insert1[1][j-1]
+                par.getLogTransProb(State::INS1, State::INS1) + insert1[1][j-1],
+                par.getLogTransProb(State::INS2, State::INS1) + insert2[1][j-1]
                 );
         insert2[1][j] = par.getLogEmitProb(0, 0, State::INS2)
             + xlogsumexp(
                 par.getLogTransProb(State::MATCH, State::INS2) + match[0][j], 
+                par.getLogTransProb(State::INS1, State::INS2) + insert1[0][j],
                 par.getLogTransProb(State::INS2, State::INS2) + insert2[0][j]
                 );
     }
@@ -64,11 +68,13 @@ float naive::PairHMM::forward(const std::vector<uchar>& seq1, const std::vector<
             insert1[i][j] = par.getLogEmitProb(0, seq2[j-2], State::INS1) 
                 + xlogsumexp(
                     par.getLogTransProb(State::MATCH, State::INS1) + match[i][j-1],
-                    par.getLogTransProb(State::INS1, State::INS1) + insert1[i][j-1]
+                    par.getLogTransProb(State::INS1, State::INS1) + insert1[i][j-1],
+                    par.getLogTransProb(State::INS2, State::INS1) + insert2[i][j-1]
                     );
             insert2[i][j] = par.getLogEmitProb(seq1[i-2], 0, State::INS2) 
                 + xlogsumexp(
                     par.getLogTransProb(State::MATCH, State::INS2) + match[i-1][j], 
+                    par.getLogTransProb(State::INS1, State::INS2) + insert1[i-1][j],
                     par.getLogTransProb(State::INS2, State::INS2) + insert2[i-1][j]
                     );
         }
@@ -103,10 +109,12 @@ float naive::PairHMM::backward(const std::vector<uchar>& seq1, const std::vector
             );
         insert1[i][seq2Len] = xlogsumexp(
             par.getLogTransProb(State::INS1, State::MATCH) + par.getLogEmitProb(seq1[i], 0, State::MATCH) + match[i+1][seq2Len+1],
-            par.getLogTransProb(State::INS1, State::INS1) + par.getLogEmitProb(0, 0, State::INS1) + insert1[i][seq2Len+1]
+            par.getLogTransProb(State::INS1, State::INS1) + par.getLogEmitProb(0, 0, State::INS1) + insert1[i][seq2Len+1],
+            par.getLogTransProb(State::INS1, State::INS2) + par.getLogEmitProb(seq1[i], 0, State::INS2) + insert2[i+1][seq2Len]
             );
         insert2[i][seq2Len] = xlogsumexp(
             par.getLogTransProb(State::INS2, State::MATCH) + par.getLogEmitProb(seq1[i], 0, State::MATCH) + match[i+1][seq2Len+1],
+            par.getLogTransProb(State::INS2, State::INS1) + par.getLogEmitProb(0, 0, State::INS1) + insert1[i][seq2Len+1],
             par.getLogTransProb(State::INS2, State::INS2) + par.getLogEmitProb(seq1[i], 0, State::INS2) + insert2[i+1][seq2Len]
             );
     }
@@ -118,10 +126,12 @@ float naive::PairHMM::backward(const std::vector<uchar>& seq1, const std::vector
             );
         insert1[seq1Len][j] = xlogsumexp(
             par.getLogTransProb(State::INS1, State::MATCH) + par.getLogEmitProb(0, seq2[j], State::MATCH) + match[seq1Len+1][j+1],
-            par.getLogTransProb(State::INS1, State::INS1) + par.getLogEmitProb(0, seq2[j], State::INS1) + insert1[seq1Len][j+1]
+            par.getLogTransProb(State::INS1, State::INS1) + par.getLogEmitProb(0, seq2[j], State::INS1) + insert1[seq1Len][j+1],
+            par.getLogTransProb(State::INS1, State::INS2) + par.getLogEmitProb(0, 0, State::INS2) + insert2[seq1Len+1][j]
             );
         insert2[seq1Len][j] = xlogsumexp(
             par.getLogTransProb(State::INS2, State::MATCH) + par.getLogEmitProb(0, seq2[j], State::MATCH) + match[seq1Len+1][j+1],
+            par.getLogTransProb(State::INS2, State::INS1) + par.getLogEmitProb(0, seq2[j], State::INS1) + insert1[seq1Len][j+1],
             par.getLogTransProb(State::INS2, State::INS2) + par.getLogEmitProb(0, 0, State::INS2) + insert2[seq1Len+1][j]
             );
     }
@@ -136,10 +146,12 @@ float naive::PairHMM::backward(const std::vector<uchar>& seq1, const std::vector
                 );
             insert1[i][j] = xlogsumexp(
                 par.getLogTransProb(State::INS1, State::MATCH) + par.getLogEmitProb(seq1[i], seq2[j], State::MATCH) + match[i+1][j+1],
-                par.getLogTransProb(State::INS1, State::INS1) + par.getLogEmitProb(0, seq2[j], State::INS1) + insert1[i][j+1]
+                par.getLogTransProb(State::INS1, State::INS1) + par.getLogEmitProb(0, seq2[j], State::INS1) + insert1[i][j+1],
+                par.getLogTransProb(State::INS1, State::INS2) + par.getLogEmitProb(seq1[i], 0, State::INS2) + insert2[i+1][j]
                 );
             insert2[i][j] = xlogsumexp(
                 par.getLogTransProb(State::INS2, State::MATCH) + par.getLogEmitProb(seq1[i], seq2[j], State::MATCH) + match[i+1][j+1],
+                par.getLogTransProb(State::INS2, State::INS1) + par.getLogEmitProb(0, seq2[j], State::INS1) + insert1[i][j+1],
                 par.getLogTransProb(State::INS2, State::INS2) + par.getLogEmitProb(seq1[i], 0, State::INS2) + insert2[i+1][j]
                 );
         }
