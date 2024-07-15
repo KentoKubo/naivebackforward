@@ -16,7 +16,10 @@ int main(int argc, char** argv){
     multiSequences.readFasta(argv[1]);
     
     naive::PairHMM pairHMM;
+
     float forwardScore = pairHMM.forward(multiSequences.getSequence(0).getEncodedSeq(), multiSequences.getSequence(1).getEncodedSeq());
-    
     std::cout << std::fixed << std::setprecision(7) << "INFO: forward score: " << forwardScore << std::endl;
+    
+    float backwardScore = pairHMM.backward(multiSequences.getSequence(0).getEncodedSeq(), multiSequences.getSequence(1).getEncodedSeq());
+    std::cout << std::fixed << std::setprecision(7) << "INFO: backward score: " << backwardScore << std::endl;
 }
