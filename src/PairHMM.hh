@@ -8,6 +8,7 @@ namespace naive{
     class PairHMM{
         private:
         PairHMMPar par;
+        void dumpMatrix(const std::string fileName, const std::vector<std::vector<float>>& matrix);
 
         public:
         float forward(const std::vector<uchar>& seq1, const std::vector<uchar>& seq2);

@@ -1,3 +1,5 @@
+#include <fstream>
+#include <iomanip>
 #include "PairHMM.hh"
 
 float naive::PairHMM::forward(const std::vector<uchar>& seq1, const std::vector<uchar>& seq2){
@@ -79,6 +81,13 @@ float naive::PairHMM::forward(const std::vector<uchar>& seq1, const std::vector<
                     );
         }
     }
+    
+    // debug
+    dumpMatrix("forward_match.csv", match);
+    dumpMatrix("forward_insert1.csv", insert1);
+    dumpMatrix("forward_insert2.csv", insert2);
+    par.counter.dumpTransProbCount("forward_trans_prob.csv");
+    par.counter.dumpEmitProbCount("forward_emit_prob.csv");
 
     // termination
     float score = xlogsumexp(match[seq1Len+1][seq2Len+1], insert1[seq1Len+1][seq2Len+1], insert2[seq1Len+1][seq2Len+1]);
@@ -87,6 +96,7 @@ float naive::PairHMM::forward(const std::vector<uchar>& seq1, const std::vector<
 
 float naive::PairHMM::backward(const std::vector<uchar>& seq1, const std::vector<uchar>& seq2){
     // initialize
+    par.counter.resetAll();
     llong seq1Len = seq1.size();
     llong seq2Len = seq2.size();
 
@@ -156,8 +166,26 @@ float naive::PairHMM::backward(const std::vector<uchar>& seq1, const std::vector
                 );
         }
     }
-
+    
+    // debug
+    dumpMatrix("backward_match.csv", match);
+    dumpMatrix("backward_insert1.csv", insert1);
+    dumpMatrix("backward_insert2.csv", insert2);
+    par.counter.dumpTransProbCount("backward_trans_prob.csv");
+    par.counter.dumpEmitProbCount("backward_emit_prob.csv");
+    
     // termination
     float score = match[0][0];
     return score;
+}
+
+void naive::PairHMM::dumpMatrix(const std::string fileName, const std::vector<std::vector<float>>& matrix){
+    std::ofstream ofs(fileName);
+    for(llong i = 0; i < matrix.size(); i++){
+        for(llong j = 0; j < matrix[i].size(); j++){
+            ofs << std::fixed << std::setprecision(8) << matrix[i][j] << ",";
+        }
+        ofs << std::endl;
+    }
+    ofs.close();
 }
