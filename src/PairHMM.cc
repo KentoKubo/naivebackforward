@@ -1,14 +1,14 @@
 #include "PairHMM.hh"
 
-float naive::PairHMM::forward(const std::vector<uchar>& seq1, const std::vector<uchar>& seq2){
+double naive::PairHMM::forward(const std::vector<uchar>& seq1, const std::vector<uchar>& seq2){
     // initialize
     llong seq1Len = seq1.size();
     llong seq2Len = seq2.size();
 
     // all f*(i,-1), f*(-1,j) = 0
-    std::vector<std::vector<float>> match(seq1Len+2, std::vector<float>(seq2Len+2, xlog(0.0)));
-    std::vector<std::vector<float>> insert1(seq1Len+2, std::vector<float>(seq2Len+2, xlog(0.0)));
-    std::vector<std::vector<float>> insert2(seq1Len+2, std::vector<float>(seq2Len+2, xlog(0.0)));
+    std::vector<std::vector<double>> match(seq1Len+2, std::vector<double>(seq2Len+2, xlog(0.0)));
+    std::vector<std::vector<double>> insert1(seq1Len+2, std::vector<double>(seq2Len+2, xlog(0.0)));
+    std::vector<std::vector<double>> insert2(seq1Len+2, std::vector<double>(seq2Len+2, xlog(0.0)));
     
     // fM(0,0) = 1, fI1(0,0) = fI2(0,0) = 0
     match[1][1] = xlog(1.0);
@@ -81,19 +81,19 @@ float naive::PairHMM::forward(const std::vector<uchar>& seq1, const std::vector<
     }
 
     // termination
-    float score = xlogsumexp(match[seq1Len+1][seq2Len+1], insert1[seq1Len+1][seq2Len+1], insert2[seq1Len+1][seq2Len+1]);
+    double score = xlogsumexp(match[seq1Len+1][seq2Len+1], insert1[seq1Len+1][seq2Len+1], insert2[seq1Len+1][seq2Len+1]);
     return score;
 }
 
-float naive::PairHMM::backward(const std::vector<uchar>& seq1, const std::vector<uchar>& seq2){
+double naive::PairHMM::backward(const std::vector<uchar>& seq1, const std::vector<uchar>& seq2){
     // initialize
     llong seq1Len = seq1.size();
     llong seq2Len = seq2.size();
 
     // all b*(i,L2+1), b*(L1+1,j) = 0
-    std::vector<std::vector<float>> match(seq1Len+2, std::vector<float>(seq2Len+2, xlog(0.0)));
-    std::vector<std::vector<float>> insert1(seq1Len+2, std::vector<float>(seq2Len+2, xlog(0.0)));
-    std::vector<std::vector<float>> insert2(seq1Len+2, std::vector<float>(seq2Len+2, xlog(0.0)));
+    std::vector<std::vector<double>> match(seq1Len+2, std::vector<double>(seq2Len+2, xlog(0.0)));
+    std::vector<std::vector<double>> insert1(seq1Len+2, std::vector<double>(seq2Len+2, xlog(0.0)));
+    std::vector<std::vector<double>> insert2(seq1Len+2, std::vector<double>(seq2Len+2, xlog(0.0)));
     
     // bM(L1,L2) = bI1(L1,L2) = bI2(L1,L2) = 1
     match[seq1Len][seq2Len] = xlog(1.0);
@@ -158,6 +158,6 @@ float naive::PairHMM::backward(const std::vector<uchar>& seq1, const std::vector
     }
 
     // termination
-    float score = match[0][0];
+    double score = match[0][0];
     return score;
 }
