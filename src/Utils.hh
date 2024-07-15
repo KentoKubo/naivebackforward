@@ -4,18 +4,18 @@
 #include <cmath>
 #include <limits>
 
-inline float xlog(const float& x){
+inline double xlog(const double& x){
     if (x == 0.0){
-        return -std::numeric_limits<float>::infinity();
+        return -std::numeric_limits<double>::infinity();
     }
     return log(x);
 }
 
-inline float xlogsumexp(const float& x, const float& y){
-    if (x == -std::numeric_limits<float>::infinity()){
+inline double xlogsumexp(const double& x, const double& y){
+    if (x == -std::numeric_limits<double>::infinity()){
         return y;
     }
-    if (y == -std::numeric_limits<float>::infinity()){
+    if (y == -std::numeric_limits<double>::infinity()){
         return x;
     }
     if (x > y){
@@ -24,7 +24,7 @@ inline float xlogsumexp(const float& x, const float& y){
     return y + log(1 + exp(x - y));
 }
 
-inline float xlogsumexp(const float& x, const float& y, const float& z){
+inline double xlogsumexp(const double& x, const double& y, const double& z){
     return xlogsumexp(x, xlogsumexp(y, z));
 }
 

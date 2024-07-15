@@ -15,12 +15,12 @@ namespace naive{
 
 	class PairHMMPar{
 		private:
-		float TransProbs[N_STATES][N_STATES] = {
+		double TransProbs[N_STATES][N_STATES] = {
 			{0.666439, 0.041319, 0.292242}, // INS2
 			{0.041319, 0.666439, 0.292242}, // INS1
 			{0.022666, 0.022666, 0.954668}  // MATCH
 		};
-		float EmitProbs[N_OUTPUTS][N_STATES] = {
+		double EmitProbs[N_OUTPUTS][N_STATES] = {
 			{0.000000, 0.000000, 1.000000}, // ..
 			{0.000000, 0.211509, 0.000000}, // .A
 			{0.000000, 0.257349, 0.000000}, // .C
@@ -49,10 +49,10 @@ namespace naive{
 		};
 		
 		public:
-		float getLogTransProb(State from, State to){
+		double getLogTransProb(State from, State to){
 			return xlog(TransProbs[static_cast<int>(from)][static_cast<int>(to)]);
 		}
-		float getLogEmitProb(const uchar& c1, const uchar& c2, State state){
+		double getLogEmitProb(const uchar& c1, const uchar& c2, State state){
 			return xlog(EmitProbs[c1 * N_CHARS + c2][static_cast<int>(state)]);
 		}
 	};

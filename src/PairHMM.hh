@@ -10,8 +10,8 @@ namespace naive{
         PairHMMPar par;
 
         public:
-        float forward(const std::vector<uchar>& seq1, const std::vector<uchar>& seq2);
-        float backward(const std::vector<uchar>& seq1, const std::vector<uchar>& seq2);
+        double forward(const std::vector<uchar>& seq1, const std::vector<uchar>& seq2);
+        double backward(const std::vector<uchar>& seq1, const std::vector<uchar>& seq2);
     };
 }
 
