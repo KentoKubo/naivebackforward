@@ -20,5 +20,5 @@ make install
 bf example/testseq.fa
 ```
 
-- `bf` command caluculates forward/backward algorithm and shows the forward/backward score only. (now, only forward algorithm was inplemented)
+- `bf` command caluculates forward/backward algorithm and shows the forward/backward score only.
 - `bf` command requires a fasta file including 2 DNA sequences.
